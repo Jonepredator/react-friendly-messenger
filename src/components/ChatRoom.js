@@ -1,25 +1,69 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { db, auth, firebaseRef } from "../config";
+import { useCollectionData } from "react-firebase-hooks/firestore";
+import MessageCard from "./MessageCard";
 
-const ChatRoom = () => {
+const ChatRoom = ({ currentRoom }) => {
+   const customRef = useRef();
    const [message, setMessage] = useState('');
+   const messagesRef = db.collection('messages');
 
-   const messages = [{ uid, photoURL, createdAt, text, room }];
-   const messageRef = db.collection('messages');
+
+   const query = messagesRef
+      .where('room', '==', currentRoom)
+      .orderBy('createdAt')
+      .limit(20);
+
+   const [messages] = useCollectionData(query, { idField: 'id' });
+
+
+   const handleSubmit = async (e) => {
+      e.preventDefault();
+      const { uid, photoURL, displayName } = auth.currentUser;
+      const createdAt = firebaseRef.firestore.FieldValue.serverTimestamp();
+
+      await messagesRef.add({
+         uid,
+         photoURL,
+         createdAt,
+         text: message,
+         room: currentRoom,
+         userName: displayName,
+      });
+      setMessage('');
+      customRef.current.scrollIntoView({ behaviour: 'smooth' });
+   };
+   console.log({ messages });
+
+   const handleDelete = (createdAt, id) => {
+      db.collection('messages').doc(id).delete();
+   };
 
    return (
-      <div className='messages'>
+      <>
+         <div className="messages">
+            {messages &&
+               messages.map((message) => (
+                  <MessageCard
+                     message={message}
+                     key={message.id}
+                     handleDelete={handleDelete}
+                  />
+               ))}
+            <span ref={customRef}></span>
+         </div>
+
          <form onSubmit={handleSubmit}>
             <textarea
-               value={messages}
+               value={message}
                onChange={(e) => setMessage(e.target.value)}
-               placeholder='Enter message'
+               placeholder="Enter message"
             />
-            <button type='submit' disabled={!message}>
-               send
+            <button type="submit" disabled={!message}>
+               Send
             </button>
          </form>
-      </div>
+      </>
    );
 };
 
