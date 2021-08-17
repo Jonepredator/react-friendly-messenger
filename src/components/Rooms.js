@@ -31,6 +31,14 @@ const Rooms = ({ currentRoom, setShowListMenu, setCurrentRoom }) => {
             >
                INFORMATION
             </li>
+            <li
+               onClick={() => {
+                  handleRoomChange("Games");
+               }}
+               className={currentRoom === "Games" ? "active" : ""}
+            >
+               GAMES
+            </li>
          </ul>
       </div>
    );
