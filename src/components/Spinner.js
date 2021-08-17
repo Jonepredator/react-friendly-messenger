@@ -1,7 +1,7 @@
 const Spinner = () => (
    <div className="spinner">
       <div className="circle">
-         <label>Loding...</label>
+         <label>Loading...</label>
          <div className="circle-child" />
       </div>
    </div>
